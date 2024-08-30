@@ -1,12 +1,7 @@
 #!/bin/bash
 
-
-#Clone Terraform module repository for alloydb
+# Clone Terraform module repository for AlloyDB
 git clone https://github.com/GoogleCloudPlatform/terraform-google-alloy-db.git
-
-#Clone Terraform module repository for cloudSQL
-#git clone https://github.com/terraform-google-modules/terraform-google-sql-db.git
-
 
 cd terraform-google-alloy-db
 
@@ -19,27 +14,30 @@ if [ ! -f "$file" ]; then
   exit 1
 fi
 
-#if private service connect should be enabled, do the following, else comment it out
-#Replace 'default     = false' with 'default     = true' for psc_enabled - the psc_enabled should be set to true
-sed -i '' 's/default     = false/default     = true/g' "$file"
+# Ask the user if they want to enable Private Service Connect
+read -p "Do you want to enable Private Service Connect (PSC)? (y/n): " enable_psc
 
-echo "Default value for psc_enabled has been changed to true in $file"
+if [ "$enable_psc" == "y" ]; then
+  # Enable PSC in variables.tf
+  sed -i '' 's/default\s\s\s=\sfalse/default\s\s\s=\strue/g' "$file"
+  echo "Default value for psc_enabled has been changed to true in $file"
+else
+  # Ask the user if they want to provide a network ID
+  read -p "Do you want to provide a network ID? (y/n): " provide_network_id
 
-#if not using private service connect, if network id needs to be set provide network id below
-#network_id="network_id"
-# Set the value of network_self_link in the Terraform file 
-#uncomment the below lines--
-# sed -i "s/network_self_link\s*=\s*null/network_self_link = \"$network_id\"/g" "$file"
+  if [ "$provide_network_id" == "y" ]; then
+    read -p "Enter the network ID: " network_id
 
-# echo "Network self link has been set to $network_id" 
+    # Set the value of network_self_link in the Terraform file
+    sed -i '' "s/network_self_link\s*=\s*null/network_self_link = \"$network_id\"/g" "$file"
+    echo "Network self link has been set to $network_id"
+  fi
+fi
 
+# Initialize Terraform
+terraform init
 
-
-
-#Initialize Terraform
-terraform init 
-
-#Create a Terraform execution plan
+# Create a Terraform execution plan
 terraform plan
 
 # Apply the Terraform configuration to create the AlloyDB cluster
