@@ -95,6 +95,48 @@ for schema in "${SCHEMAS[@]}"; do
     --filters "routine_schema = '$schema'" \
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
 
+  # Primary Key Count Validation
+    data-validation validate column \
+    -sc $CONN_NAME \
+    -tc $DEST_CONN_NAME \
+    --tables-list information_schema.table_constraints \
+    --filters "constraint_type = 'PRIMARY KEY' AND table_schema = '$schema'" \
+    -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
+
+  # Foreign Key Count Validation
+    data-validation validate column \
+    -sc $CONN_NAME \
+    -tc $DEST_CONN_NAME \
+    --tables-list information_schema.table_constraints \
+    --filters "constraint_type = 'FOREIGN KEY' AND table_schema = '$schema'" \
+    -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
+
+  # Constraints Count Validation
+    data-validation validate column \
+    -sc $CONN_NAME \
+    -tc $DEST_CONN_NAME \
+    --tables-list information_schema.table_constraints \
+    --filters "table_schema = '$schema'" \
+    -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
+
+  # Functions Count Validation
+    data-validation validate column \
+    -sc $CONN_NAME \
+    -tc $DEST_CONN_NAME \
+    --tables-list information_schema.routines \
+    --filters "routine_type = 'FUNCTION' AND routine_schema = '$schema'" \
+    -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
+ 
+  # Sequence Count Validation
+    data-validation validate column \
+    -sc $CONN_NAME \
+    -tc $DEST_CONN_NAME \
+    --tables-list information_schema.sequences \
+    --filters "sequence_schema = '$schema'" \
+    -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
+
+
+
   export PGPASSWORD=$DVT_SOURCE_PASSWORD
   # Get tables in the schema
   tables=$(psql -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT -d $DB_NAME -At -c "SELECT table_name FROM information_schema.tables WHERE table_schema = '$schema'")
