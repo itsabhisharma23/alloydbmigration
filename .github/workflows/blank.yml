@@ -7,7 +7,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches:
-      - feature/**  # Trigger on pushes to feature branches
+      - feature_**  # Trigger on pushes to feature branches
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -16,7 +16,7 @@ on:
 jobs:
   # This workflow contains a single job called "build"
   deploy-to-dev:
-    if: github.ref_type == 'branch' && startsWith(github.ref_name, 'feature/')
+    if: github.ref_type == 'branch' && startsWith(github.ref_name, 'feature_')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
