@@ -31,4 +31,4 @@ jobs:
           pip install -r requirements.txt  # Or your dependency management command
 
       - name: Run the script
-        run: python print("Abhishek Sharma")  # Replace with your Python script's name
+        run: python hello.py  # Replace with your Python script's name
