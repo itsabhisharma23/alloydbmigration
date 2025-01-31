@@ -14,15 +14,21 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  deploy-to-dev:
-    if: github.ref_type == 'branch' && startsWith(github.ref_name, 'feature_')
+  run-python-script:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy to dev
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'  # Replace with your desired Python version
+
+      - name: Install dependencies (if any)
         run: |
-          echo "Deploying to dev..."
-          # Add your dev deployment logic here
+          pip install -r requirements.txt  # Or your dependency management command
+
+      - name: Run the script
+        run: python print("Abhishek Sharma")  # Replace with your Python script's name
