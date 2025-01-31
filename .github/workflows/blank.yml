@@ -27,4 +27,4 @@ jobs:
           python-version: '3.12'  # Replace with your desired Python version
 
       - name: Run the script
-        run: python print("Abhishek Sharma")  # Replace with your Python script's name
+        run: python hello.py  # Replace with your Python script's name
