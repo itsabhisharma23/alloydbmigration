@@ -2,7 +2,7 @@
 
 # This is a sample YAML file for testing the GitHub Action.
 
-project: {{PROJECT_ID}} 
+project: stock-data-ingess 
 region: us-central1
 schedule: "0 0 0 * *"
 
