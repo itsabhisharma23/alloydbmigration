@@ -26,5 +26,7 @@ jobs:
         with:
           python-version: '3.12'  # Replace with your desired Python version
 
-      - name: Run the script
-        run: echo ${{ vars.TEST2 }}  # Replace with your Python script's name
+      - name: Replace {{PROJECT_ID}} in YAML files inside dags folder
+        run: |
+          PROJECT_ID="${{ vars.PROJECT_ID }}"
+          find dags/ -name "*.yaml" -exec sed -i "s/{{PROJECT_ID}}/$PROJECT_ID/g" {} \;
