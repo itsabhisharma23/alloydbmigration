@@ -1,0 +1,9 @@
+# File: dags/my_dag_config.yaml
+
+# This is a sample YAML file for testing the GitHub Action.
+
+project: {{PROJECT_ID}} 
+region: us-central1
+schedule: "0 0 * * *"
+
+# Other configurations...
