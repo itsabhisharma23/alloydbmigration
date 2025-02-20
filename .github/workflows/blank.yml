@@ -29,4 +29,4 @@ jobs:
       - name: Replace {{PROJECT_ID}} in YAML files inside dags folder
         run: |
           PROJECT_ID="${{ vars.PROJECT_ID }}"
-          find dags/ -name "*.yaml" -exec sed -i "s/\{\{PROJECT_ID\}\}/$PROJECT_ID/g" {} \;
+          find dags/ -name "*.yaml" -exec sed -i "s/{{PROJECT_ID}}/$PROJECT_ID/g" {} \;
