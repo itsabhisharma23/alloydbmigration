@@ -2,7 +2,7 @@
 
 # Startup script to create PostgresSQL to CloudSQL/AlloyDB Migration
 # This script is intended to do an end-to-end migration using Cloud DMS
-# show banner
+# show banner.
 source ./bin/banner.sh 
 echo -e "\n\nSelect the source PostgreSQL type:\n
 1. On-premise
