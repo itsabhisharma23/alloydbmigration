@@ -1,20 +1,19 @@
-# This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the workflow will run
+name: Upload Repo to GCS
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
     branches:
-      - feature_**  # Trigger on pushes to feature branches
+      - "dev"
+    paths:
+      - "src/dags/**"
+
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  run-python-script:
+  if_merged:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
