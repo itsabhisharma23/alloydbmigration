@@ -13,6 +13,6 @@ read source_type
 
 echo -e "\n\nSelect the target type:\n
 1. AlloyDB
-2. CloudSQL"
+2. CloudSQL    ajhsg"
 # Read user input and store it in the 'target_type' variable
 read target_type
