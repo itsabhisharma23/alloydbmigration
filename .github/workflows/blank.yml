@@ -25,7 +25,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  # Replace with your desired Python version
+          python-version: '3.12'  # Replace with your desied Python version
 
       - name: Install dependencies (if any)
         run: |
@@ -33,5 +33,6 @@ jobs:
 
       - name: Replace {{PROJECT_ID}} in YAML files inside dags folder
         run: |
-          PROJECT_ID="${{ vars.PROJECT_ID }}"
-          find dags/ -name "*.yaml" -exec sed -i "s/{{PROJECT_ID}}/$PROJECT_ID/g" {} \;
+          PROJECT_ENV="-d"
+          DATASET_END="_dev"
+          find dags/ -name "*.yaml" -exec sed -i "s/{PROJECT-ENV}/$PROJECT_ENV/g; s/{DATASET-ENV}/$DATASET_ENV/g" {} \;
