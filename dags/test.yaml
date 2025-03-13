@@ -4,7 +4,7 @@
 
 project: uf-data-warehouse-<PROJECT-ENV>
 dataset: tms_silver_<DATASET-ENV>
-region: us-central1
+region: us-central16
 schedule: "0 0 * * *"
 
 # Other configurations...
