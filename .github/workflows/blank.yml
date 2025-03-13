@@ -36,4 +36,4 @@ jobs:
           PROJECT_ENV="-d"
           DATASET_END="_dev"
           find dags/ -name "*.yaml" -exec sed -i "s/<PROJECT-ENV>/$PROJECT_ENV/g; s/<DATASET-ENV>/$DATASET_ENV/g" {} \;
-          cat dags/test.yaml
+          cat dags/abhi.yaml
