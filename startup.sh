@@ -99,7 +99,7 @@ fi
 # Provide --cloudsql-instance if source DB is CLoudSQL(Postgre) else provide --alloydb-cluster property.
 
 if (( target_type_name == "AlloyDB" )); then
-    echo "\n${YELLOW}creating destination profile for AlloyDB...${NC}\n"
+    echo "${YELLOW}creating destination profile for AlloyDB...${NC}"
     gcloud database-migration connection-profiles create postgresql $DESTINATION_PROFILE_NAME \
     --region=$REGION \
     --display-name=$DESTINATION_PROFILE_NAME \
@@ -110,7 +110,7 @@ if (( target_type_name == "AlloyDB" )); then
     --prompt-for-password \
     --project=$PROJECT_ID
 else
-    echo "\n${YELLOW}creating destination profile for CloudSQL...${NC}\n"
+    echo "${YELLOW}creating destination profile for CloudSQL...${NC}"
     gcloud database-migration connection-profiles create postgresql $DESTINATION_PROFILE_NAME \
     --region=$REGION \
     --display-name=$DESTINATION_PROFILE_NAME \
@@ -140,7 +140,8 @@ echo "${YELLOW}creating database migration job...${NC}"
 # For Reverse-SSH Proxy provide the additional properties of --vm, --vm-ip, --vm-port and --vpc in the migration.config file
 
 # Print Notes:
-echo "${BOLD}\nNote: By Default the tool uses VPC peering.${NC}"
+echo ""
+echo "${BOLD}Note: By Default the tool uses VPC peering.${NC}"
 echo "${BOLD}For Reverse-SSH Proxy provide the additional properties of --vm, --vm-ip, --vm-port and --vpc in the migration.config file\n${NC}"
 
 if [ -v VM_NAME ]; then
@@ -188,8 +189,8 @@ done
 if (( target_type_name == "AlloyDB" )); then
   # Demote the destination before starting the job
   gcloud database-migration migration-jobs demote-destination $MIGRATION_JOB_NAME --region=$REGION --project=$PROJECT_ID
-
-  echo "\n${YELLOW}waiting for destination to be in demoted state...${NC}"
+  echo ""
+  echo "${YELLOW}waiting for destination to be in demoted state...${NC}"
   # wait for destination demotion
 
   while true; do
@@ -218,11 +219,11 @@ else
   done
 fi
 
-echo "\n\n${BOLD}Migration Job details${NC}"
-
+echo ""
+echo "${BOLD}Migration Job details${NC}"
 gcloud database-migration migration-jobs describe $MIGRATION_JOB_NAME --region=$REGION --project=$PROJECT_ID 
-
-echo "\n${YELLOW}Starting the DMS job...${NC}"
+echo ""
+echo "${YELLOW}Starting the DMS job...${NC}"
 
 #Start DMS Job
 gcloud database-migration migration-jobs start $MIGRATION_JOB_NAME --region=$REGION --project=$PROJECT_ID
