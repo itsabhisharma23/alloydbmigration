@@ -1,0 +1,10 @@
+# File: dags/my_dag_config.yaml
+
+# This is a sample YAML file for testing the GitHub Action.
+
+project: uf-data-warehouse-<PROJECT-ENV>
+dataset: tms_silver_<DATASET-ENV>
+region: us-central16
+schedule: "0 0 * * *"
+
+# Other configurations...
