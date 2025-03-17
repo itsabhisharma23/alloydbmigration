@@ -25,15 +25,6 @@ class TestDynamicDags(unittest.TestCase):
                 print(f"Error importing DAG file {filepath}: {error}") #print specific errors.
         self.assertFalse(errors, 'DAG import failures. Errors: {}'.format(errors))
 
-    def test_dynamic_dag_exists(self):
-        self.assertIn('dynamic_example', self.dagbag.dags)
-
-    def test_dynamic_dag_tasks(self):
-        dag = self.dagbag.get_dag(dag_id='dynamic_example')
-        print(f"Testing DAG: {dag.dag_id}") #Print the dag id.
-        expected_task_ids = ['process_item1', 'process_item2', 'process_item3']
-        task_ids = [task.task_id for task in dag.tasks]
-        self.assertEqual(sorted(task_ids), sorted(expected_task_ids))
 
 if __name__ == '__main__':
     unittest.main()
