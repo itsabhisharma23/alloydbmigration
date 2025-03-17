@@ -27,5 +27,5 @@ jobs:
             --ignore parsing,templating \
             --format github-annotation \
             --disable_progress_bar \
-            sql_bigquery/ || exit 1
+            / || exit 1
           popd || exit
