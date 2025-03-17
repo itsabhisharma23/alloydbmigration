@@ -21,11 +21,11 @@ jobs:
       - name: Lint SQL with SQLFluff
         run: |
           pip install sqlfluff==0.9.1 click==8.0.3
-          pushd sql || exit
+          pushd dags || exit
           sqlfluff lint \
             --dialect bigquery \
             --ignore parsing,templating \
             --format github-annotation \
             --disable_progress_bar \
-            / || exit 1
+            sql/ || exit 1
           popd || exit
