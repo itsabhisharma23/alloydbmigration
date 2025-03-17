@@ -1,21 +1,12 @@
-name: Upload Repo to GCS
+name: Test Airflow DAGs
+
 on:
-  pull_request:
+  push:
     branches:
-      - "dev"
-    paths:
-      - "src/dags/**"
-    types:
-      - closed
+      - feature/new
 
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  upload:
-    if: github.event.pull_request && github.event.pull_request.merged == true
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,15 +16,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'  # Replace with your desied Python version
+          python-version: '3.12' #Adjust version as needed.
 
-      - name: Install dependencies (if any)
-        run: |
-          pip install -r requirements.txt  # Or your dependency management command
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-      - name: Replace {{PROJECT_ID}} in YAML files inside dags folder
-        run: |
-          PROJECT_ENV="-d"
-          DATASET_END="_dev"
-          find dags/ -name "*.yaml" -exec sed -i "s/<PROJECT-ENV>/$PROJECT_ENV/g; s/<DATASET-ENV>/$DATASET_ENV/g" {} \;
-          cat dags/abhi.yaml
+      - name: Run unit tests
+        run: python -m unittest discover -s tests
