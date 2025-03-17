@@ -18,6 +18,8 @@ def dagbag():
 
 def test_dagbag_not_empty(dagbag):
     print("Testing DAGs: Ensuring dagbag is not empty")
+    for dag in dagbag.dags.values():
+        print(f"  Testing DAG: {dag.dag_id}")
     assert dagbag.size() > 0, "Dagbag should not be empty."
 
 def test_dagbag_no_import_errors(dagbag):
