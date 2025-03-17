@@ -24,7 +24,7 @@ os.environ["AIRFLOW_VAR_GLUE_CRAWLER_IAM_ROLE"] = "test_role_2"
 @pytest.fixture(params=["../dags/"])
 def dag_bag(request):
     dynamic_dag_generator.generate_dags()
-    yield DagBag(dag_folder=dags_path, include_examples=False)
+    yield DagBag(dag_folder=request.param, include_examples=False)
 
 def test_dagbag_not_empty(dagbag):
     for dag in dagbag.dags.values():
