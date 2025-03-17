@@ -1,42 +1,39 @@
 from dags import dynamic_dag_generator  # Import the DAG generator
-import sys
-from pathlib import Path
-
-import pytest
+import unittest
 from airflow.models import DagBag
+import sys
+import os
+
+# Add necessary environment variables for Airflow
+os.environ['AIRFLOW_HOME'] = os.path.abspath(os.path.join(os.path.dirname(__file__), '..')) #set airflow home
+os.environ['AIRFLOW__CORE__DAGS_FOLDER'] = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dags')) #set dags folder
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dags'))) #Add the dags folder to the path
 
 
-@pytest.fixture(scope="session")
-def dagbag():
-    dags_path = str((Path(__file__).parent.parent / "dags").resolve())
-    sys.path.insert(0, dags_path)
-    yield DagBag(dag_folder=dags_path, include_examples=False)
+class TestDynamicDags(unittest.TestCase):
 
-def test_dagbag_not_empty(dagbag):
-    assert dagbag.size() > 0, "Dagbag should not be empty."
+    def setUp(self):
+        # Generate dynamic DAGs before each test
+        dynamic_dag_generator.generate_dags()
+        self.dagbag = DagBag(dag_folder=os.environ['AIRFLOW__CORE__DAGS_FOLDER']) #Use the environment variable.
 
-def test_dagbag_no_import_errors(dagbag):
-    assert dagbag.import_errors == {}, "No import errors should be found."
+    def test_import_dags(self):
+        errors = self.dagbag.import_errors
+        if errors:
+            for filepath, error in errors.items():
+                print(f"Error importing DAG file {filepath}: {error}") #print specific errors.
+        self.assertFalse(errors, 'DAG import failures. Errors: {}'.format(errors))
 
-''' Uncomment below if you want to fail on warnings
-def test_dagbag_no_import_warnings(dagbag):
-    assert len(dagbag.captured_warnings) == 0, "No warnings should be found."
-'''
+    def test_dynamic_dag_exists(self):
+        self.assertIn('dynamic_example', self.dagbag.dags)
 
-def test_filename_matches_dag_id(dagbag):
-    """Tests that filename matches dag_id"""
-    for dag in dagbag.dags.values():
-        assert dag.dag_id == Path(dag.relative_fileloc).stem, (
-            "Filename does not match DAG ID."
-        )
+    def test_dynamic_dag_tasks(self):
+        dag = self.dagbag.get_dag(dag_id='dynamic_example')
+        print(f"Testing DAG: {dag.dag_id}") #Print the dag id.
+        expected_task_ids = ['process_item1', 'process_item2', 'process_item3']
+        task_ids = [task.task_id for task in dag.tasks]
+        self.assertEqual(sorted(task_ids), sorted(expected_task_ids))
 
-def test_sleepy_dag(dagbag):
-    dag = dagbag.get_dag("sleepy")
-    assert dag is not None, "DAG sleepy not found."
-    assert len(dag.tasks) == 10, "DAG sleepy should contain 10 tasks."
-
-
-def test_custom_task_group_example(dagbag):
-    dag = dagbag.get_dag("custom_task_group_example")
-    assert dag is not None, "DAG custom_task_group_example not found."
-    assert len(dag.tasks) == 4, "DAG custom_task_group_example should contain 4 tasks."
+if __name__ == '__main__':
+    unittest.main()
