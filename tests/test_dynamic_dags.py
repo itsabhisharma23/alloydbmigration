@@ -5,8 +5,6 @@ from pathlib import Path
 import pytest
 from airflow.models import DagBag
 
-# Import your dynamic DAG generator
-import dynamic_dag_generator
 
 @pytest.fixture(scope="session")
 def dagbag():
