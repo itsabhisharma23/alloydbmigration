@@ -17,13 +17,15 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.12' #Adjust version as needed.
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Test DAGs with Pytest
+          
+      - name: Lint SQL with SQLFluff
         run: |
-          pip install pytest==6.2.5
-          pushd tests || exit
-          python3 -m pytest test_dynamic_dags.py -v || exit
+          pip install sqlfluff==0.9.1 click==8.0.3
+          pushd sql || exit
+          sqlfluff lint \
+            --dialect bigquery \
+            --ignore parsing,templating \
+            --format github-annotation \
+            --disable_progress_bar \
+            sql_bigquery/ || exit 1
           popd || exit
