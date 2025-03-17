@@ -22,6 +22,7 @@ jobs:
         run: |
           pip install sqlfluff==0.9.1 click==8.0.3
           pushd dags || exit
+          sqlfluff fix sql/
           sqlfluff lint \
             --dialect bigquery \
             --ignore parsing,templating \
