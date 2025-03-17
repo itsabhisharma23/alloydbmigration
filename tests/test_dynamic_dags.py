@@ -1,6 +1,6 @@
 import unittest
 from airflow.models import DagBag
-import dynamic_dag_generator  # Import the DAG generator
+from dags import dynamic_dag_generator  # Import the DAG generator
 
 class TestDynamicDags(unittest.TestCase):
 
