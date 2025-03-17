@@ -1,1 +1,1 @@
-SELECT name FROM project.dataset.table
+SELECT * FROM project.dataset.table
