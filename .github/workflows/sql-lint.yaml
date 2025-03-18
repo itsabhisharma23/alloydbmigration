@@ -2,8 +2,7 @@ name: SQLFluff Lint
 
 on:
   pull_request:
-    branches:
-      - main # or your default branch
+    types: [opened, synchronize, reopened]
 
 jobs:
   lint:
