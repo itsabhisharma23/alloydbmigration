@@ -6,7 +6,7 @@ source <(grep -E '^\w+=' vars.sh)
 # Install packages
 sudo apt-get update
 sudo apt-get install -yq git python3 python3-pip python3-distutils
-sudo pip install --upgrade pip virtualenv
+sudo pip install --upgrade pip virtualenv  
 # Installation
 echo "Installing PostgreSQL client version 14.10..."
 
