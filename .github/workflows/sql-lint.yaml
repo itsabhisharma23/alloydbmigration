@@ -3,6 +3,8 @@ name: SQLFluff Lint
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+    paths:
+      - '**.sql'
 
 jobs:
   lint:
@@ -10,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -19,7 +21,7 @@ jobs:
 
       - name: Lint SQL with SQLFluff
         run: |
-          pip install sqlfluff==0.9.1 click==8.0.3
+          pip install sqlfluff
           pushd dags || exit
           sqlfluff fix sql/
           sqlfluff lint \
@@ -29,4 +31,3 @@ jobs:
             --disable_progress_bar \
             sql/ || exit 1
           popd || exit
-
