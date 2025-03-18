@@ -2,19 +2,16 @@ name: Auto-Approve PR
 
 on:
   pull_request:
-    types: [open, synchronize, reopened] # Trigger on PR submission, sync, and reopen
+    types: [submitted, synchronize, reopened] # Trigger on PR submission, sync, and reopen
 
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
+    permissions:
+      checks: read
     steps:
-      - name: Wait for Checks
-        uses: lewagon/wait-on-check@v1.3.1
+      - name: Wait for GitHub Checks
+        uses: poseidon/wait-for-status-checks@v0.6.0
         with:
-          check-name: '*' # Wait for all checks to complete
-          timeout: 600 # 10 minutes timeout (adjust as needed)
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Approve PR
-        uses: peter-evans/approve-pull-request@v2
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
