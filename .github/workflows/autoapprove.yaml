@@ -2,61 +2,19 @@ name: Auto-Approve PR
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [open, synchronize, reopened] # Trigger on PR submission, sync, and reopen
 
 jobs:
   auto-approve:
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.draft == false }} # Do not auto approve draft PR's
     steps:
-      - name: Check if all checks have passed
-        uses: actions/github-script@v6
-        id: check-status
+      - name: Wait for Checks
+        uses: lewagon/wait-on-check@v1.3.1
         with:
-          script: |
-            const { owner, repo, pull_number } = context.issue;
-            const checks = await github.rest.checks.listForRef({
-              owner,
-              repo,
-              ref: context.payload.pull_request.head.sha,
-            });
+          check-name: '*' # Wait for all checks to complete
+          timeout: 600 # 10 minutes timeout (adjust as needed)
 
-            const allChecksPassed = checks.data.check_runs.every(check => check.conclusion === 'success');
-
-            if (!allChecksPassed) {
-              console.log("Some checks have not passed yet.");
-              return;
-            }
-
-            const reviews = await github.rest.pulls.listReviews({
-              owner,
-              repo,
-              pull_number,
-            });
-
-            const alreadyApproved = reviews.data.some(review => review.user.login === 'github-actions[bot]' && review.state === 'APPROVED');
-
-            if (alreadyApproved) {
-              console.log("PR already approved by bot.");
-              return;
-            }
-
-            await github.rest.pulls.createReview({
-              owner,
-              repo,
-              pull_number,
-              event: 'APPROVE',
-            });
-
-      - name: Approve PR if checks passed
-        if: steps.check-status.outcome == 'success'
-        uses: actions/github-script@v6
+      - name: Approve PR
+        uses: peter-evans/approve-pull-request@v2
         with:
-          script: |
-            const { owner, repo, pull_number } = context.issue;
-            await github.rest.pulls.createReview({
-              owner,
-              repo,
-              pull_number,
-              event: 'APPROVE',
-            });
+          github-token: ${{ secrets.GITHUB_TOKEN }}
