@@ -1,0 +1,28 @@
+name: SQLfluff - Lint
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  merge_group: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+jobs:
+  sql-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/common
+      - name: Lint SQL with SQLFluff
+        run: |
+          pip install sqlfluff==0.9.1 click==8.0.3
+          pushd dags || exit
+          sqlfluff fix sql/
+          sqlfluff lint \
+            --dialect bigquery \
+            --ignore parsing,templating \
+            --format github-annotation \
+            --disable_progress_bar \
+            sql/ || exit 1
+          popd || exit
