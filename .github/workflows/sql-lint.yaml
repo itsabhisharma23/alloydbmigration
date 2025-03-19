@@ -28,7 +28,7 @@ jobs:
 
       - name: Run SQL Lint for modified files
         run: |
-          pip install sqlfluff==0.9.1 click==8.0.3
+          pip install sqlfluff
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
             changed_sql_files=$(git diff --name-only -r HEAD^1 HEAD -- '*.sql')
           else
