@@ -19,16 +19,15 @@ jobs:
         with:
           python-version: '3.12'
           
-      - name: Get changed SQL files
-        id: changed_files
-        run: |
-          changed_sql_files=$(git diff --name-only HEAD~1 -- '*.sql')
-          if [[ -n "$changed_sql_files" ]]; then
-            echo "::set-output name=files::$changed_sql_files"
-          fi
-
-      - name: Lint SQL with SQLFluff
-        if: steps.changed_files.outputs.files
+      - name: Get SQL changed files
+        id: changed-sql-files
+        uses: tj-actions/changed-files@v23
+        with:
+          files: |
+            *.sql
+            **/*.sql
+      - name: Run if any of the listed files above is changed
+        if: steps.changed-sql-files.outputs.any_changed == 'true'
         run: |
           pip install sqlfluff==0.9.1 click==8.0.3
           sqlfluff lint \
@@ -36,5 +35,6 @@ jobs:
             --ignore parsing,templating \
             --format github-annotation \
             --disable_progress_bar \
-            ${{ steps.changed_files.outputs.files }} || exit 1
+            ${{ steps.changed-sql-files.outputs.all_changed_files }} || exit 1
           popd || exit
+     
