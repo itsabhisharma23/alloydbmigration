@@ -36,5 +36,5 @@ jobs:
             --format github-annotation \
             --disable_progress_bar \
             ${{ steps.changed-sql-files.outputs.all_changed_files }} || exit 1
-          popd || exit
+          
      
