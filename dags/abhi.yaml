@@ -5,6 +5,6 @@
 project: uf-data-warehouse-<PROJECT-ENV>
 dataset: tms_silver_<DATASET-ENV>
 region: us-central16
-schedule: "0 0 * * *"
+schedule: "0 0 * * *ajksh"
 
 # Other configurations...
