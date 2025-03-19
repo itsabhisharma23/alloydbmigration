@@ -1,10 +1,14 @@
 name: SQLFluff Lint
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
     paths:
-      - '**.sql'
+      - '**.sql' 
+  pull_request:
+    paths:
+      - '**.sql' 
+  merge_group: {}
 
 jobs:
   lint:
