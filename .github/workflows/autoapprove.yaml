@@ -2,7 +2,7 @@ name: Auto-Approve PR
 
 on:
   pull_request:
-    types: [submitted, synchronize, reopened] # Trigger on PR submission, sync, and reopen
+    types: [opened, synchronize, reopened] # Trigger on PR submission, sync, and reopen
 
 jobs:
   auto-approve:
