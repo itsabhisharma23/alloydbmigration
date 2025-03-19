@@ -23,22 +23,21 @@ jobs:
         with:
           python-version: '3.12'
           
-      - name: Get SQL changed files
-        id: changed-sql-files
-        uses: tj-actions/changed-files@v23
-        with:
-          files: |
-            *.sql
-            **/*.sql
-      - name: Run if any of the listed files above is changed
-        if: steps.changed-sql-files.outputs.any_changed == 'true'
+
+      - name: Run SQL Lint for modified files
         run: |
           pip install sqlfluff==0.9.1 click==8.0.3
+          if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
+            changed_sql_files=$(git diff --name-only -r HEAD^1 HEAD -- '*.sql')
+          else
+            changed_sql_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- '*.sql')
+          fi
+          
           sqlfluff lint \
             --dialect bigquery \
             --ignore parsing,templating \
             --format github-annotation \
             --disable_progress_bar \
-            ${{ steps.changed-sql-files.outputs.all_changed_files }} || exit 1
+            $changed_sql_files || exit 1
           
      
