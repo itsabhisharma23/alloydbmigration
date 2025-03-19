@@ -1,1 +1,1 @@
-SELECT * FROM table1
+SELECT name FROM table1
