@@ -39,7 +39,6 @@ jobs:
             --dialect bigquery \
             --ignore parsing,templating \
             --format github-annotation \
-            --disable_progress_bar \
             $changed_sql_files || exit 1
           
      
