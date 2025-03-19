@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Clone Terraform module repository for AlloyDB
+# Clone Terraform module repository for AlloyDB  
 git clone https://github.com/GoogleCloudPlatform/terraform-google-alloy-db.git
 
 cd terraform-google-alloy-db
