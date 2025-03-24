@@ -51,3 +51,5 @@ jobs:
                 exit 1
               fi
             fi
+          echo "DDL: $file executed successfully"
+          done
