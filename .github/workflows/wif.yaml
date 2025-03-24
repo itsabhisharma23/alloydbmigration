@@ -4,7 +4,7 @@ on:
     branches:
       - "feature/ddltest"
     paths:
-      - "dags/ddls/**"
+      - "dags/ddls/**.sql"
 
 permissions:
   contents: read
@@ -26,6 +26,28 @@ jobs:
           create_credentials_file: true
           export_environment_variables: true
           cleanup_credentials: false
-      - name: Sync Dags to GCS
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+      - name: BQ Table create
         run: |
-          echo "Hello"
+          ddl_files=$(find dags/ddl -name "*.sql" | sort)
+
+          for file in $ddl_files; do
+            ddl_content=$(cat "$file")
+            echo "Executing DDL: $file"
+
+            if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
+              echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed in CICD deployments. Exiting."
+              exit 1
+            fi
+
+            if [[ "$ddl_content" == *'CREATE TABLE'* ]]; then
+              echo "Executing CREATE TABLE statement: $file"
+              if ! bq query --use_legacy_sql=false < "$file"; then
+                echo "Error executing CREATE TABLE: $file. Exiting."
+                exit 1
+              fi
+            fi
