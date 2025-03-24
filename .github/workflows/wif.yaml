@@ -40,7 +40,7 @@ jobs:
             echo "Executing DDL: $file"
 
             if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
-              echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed in CICD deployments. Exiting."
+              echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed in production deployments. Exiting."
               exit 1
             fi
 
@@ -50,6 +50,25 @@ jobs:
                 echo "Error executing CREATE TABLE: $file. Exiting."
                 exit 1
               fi
+            elif [[ "$ddl_content" == *'ALTER TABLE'* ]]; then
+                echo "WARNING: Executing ALTER TABLE statement: $file. Data loss may occur."
+                if ! bq query --use_legacy_sql=false < "$file"; then
+                  echo "Error executing ALTER TABLE: $file. Exiting."
+                  exit 1
+                fi
+            elif [[ "$ddl_content" == *'CREATE OR REPLACE VIEW'* ]]; then
+                echo "Executing CREATE OR REPLACE VIEW statement: $file"
+                if ! bq query --use_legacy_sql=false < "$file"; then
+                  echo "Error executing CREATE OR REPLACE VIEW: $file. Exiting."
+                  exit 1
+                fi
+            else
+              echo "Executing other DDL statement: $file"
+              if ! bq query --use_legacy_sql=false < "$file"; then
+                echo "Error executing other DDL: $file. Exiting."
+                exit 1
+              fi
+
             fi
-          echo "DDL: $file executed successfully"
+            echo "DDL: $file executed successfully"
           done
