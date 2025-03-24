@@ -33,7 +33,7 @@ jobs:
           version: '>= 363.0.0'
       - name: BQ Table create
         run: |
-          ddl_files=$(find dags/ddl -name "*.sql" | sort)
+          ddl_files=$(find dags/ddls -name "*.sql" | sort)
 
           for file in $ddl_files; do
             ddl_content=$(cat "$file")
