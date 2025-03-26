@@ -21,7 +21,7 @@ def test_dagbag_not_empty(dagbag):
     
 def test_no_import_errors(dag_bag):
     """Test if there are any import errors"""
-    assert not dag_bag.import_errors
+    assert dagbag.import_errors == {}, "No import errors should be found."
 
 
 def test_requires_tags(dag_bag):
