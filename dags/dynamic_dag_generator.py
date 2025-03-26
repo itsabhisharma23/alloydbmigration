@@ -15,6 +15,7 @@ def generate_dags():
         dag_id='dynamic_example',
         default_args=default_args,
         schedule_interval=None,
+        tags=["environment"]
         catchup=False,
     )
 
