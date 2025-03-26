@@ -55,7 +55,7 @@ def test_three_or_less_retries(dag_bag):
 
 
 def test_dag_id_contains_prefix(dag_bag):
-    """Test if there is a required prefix or not""
+    """Test if there is a required prefix or not"""
     for dag_id, dag in dag_bag.dags.items():
         assert str.lower(dag_id).find("__") != -1
 
