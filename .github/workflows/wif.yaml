@@ -45,6 +45,13 @@ jobs:
           DATASET_ENV='dev'
           PROJECT_ENV='d'
           for ddl_file in src/python/cloud_composer/ddls/*.sql; do
-            echo "Executing DDL: $ddl_file"
-            bq query --use_legacy_sql=false "$(sed "s/<PROJECT-ENV>/$PROJECT_ENV/g; s/<DATASET-ENV>/$DATASET_ENV/g" $ddl_file)"
+            ddl_content=$(cat "$file")
+            echo "Executing DDL: $file"
+
+            if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
+              echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed for DDLs deployments. Exiting."
+              exit 1
+            fi
+
+            echo "DDL: $file executed successfully"
           done
