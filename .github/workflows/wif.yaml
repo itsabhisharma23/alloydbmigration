@@ -45,7 +45,7 @@ jobs:
           DATASET_ENV='dev'
           PROJECT_ENV='d'
           for ddl_file in src/python/cloud_composer/ddls/*.sql; do
-            ddl_content=$(cat "$file")
+            ddl_content=$(cat "$ddl_file")
             echo "Executing DDL: $file"
 
             if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
