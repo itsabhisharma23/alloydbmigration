@@ -53,6 +53,9 @@ jobs:
               echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed for DDLs deployments. Exiting."
               exit 1
             fi
-
+            if ! bq query --use_legacy_sql=false < "$file"; then
+              echo "Error executing DDLs : $file. Exiting."
+              exit 1
+            fi
             echo "DDL: $file executed successfully"
           done
