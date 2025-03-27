@@ -53,7 +53,7 @@ jobs:
               echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed for DDLs deployments. Exiting."
               exit 1
             fi
-            if ! bq query --use_legacy_sql=false < "$file" 2>&1 | grep -q 'already exists'; then
+            if ! bq query --use_legacy_sql=false < "$file" 2>&1 | grep -q 'Already Exists: Table'; then
               if [[ "$?" -ne 0 ]]; then
                 echo "Error executing DDL: $file"
                 exit 1
