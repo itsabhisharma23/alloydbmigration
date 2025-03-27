@@ -4,7 +4,8 @@ on:
     branches:
       - "feature/ddltest"
     paths:
-      - "dags/ddls/**.sql"
+      - "src/python/cloud_composer/dags/**"
+      - "src/python/cloud_composer/ddls/**" # Added path for DDLs
 
 permissions:
   contents: read
@@ -31,44 +32,19 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
           version: '>= 363.0.0'
-      - name: BQ Table create
+      - name: Sync DAGs to GCS
         run: |
-          ddl_files=$(find dags/ddls -name "*.sql" | sort)
+          DATASET_ENV='dev'
+          PROJECT_ENV='d'
+          find src/python/cloud_composer/dags/ -name "*.yaml" -print0 | xargs -0 -I {} sed -i "s/<PROJECT-ENV>/$PROJECT_ENV/g; s/<DATASET-ENV>/$DATASET_ENV/g" {}
+          find src/python/cloud_composer/dags/ -name "*.sql" -print0 | xargs -0 -I {} sed -i "s/<PROJECT-ENV>/$PROJECT_ENV/g; s/<DATASET-ENV>/$DATASET_ENV/g" {}
+          gsutil -m rsync -d -c -r src/python/cloud_composer/dags/ gs://dataproc-jdbc/dags
 
-          for file in $ddl_files; do
-            ddl_content=$(cat "$file")
-            echo "Executing DDL: $file"
-
-            if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
-              echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed in production deployments. Exiting."
-              exit 1
-            fi
-
-            if [[ "$ddl_content" == *'CREATE TABLE'* ]]; then
-              echo "Executing CREATE TABLE statement: $file"
-              if ! bq query --use_legacy_sql=false < "$file"; then
-                echo "Error executing CREATE TABLE: $file. Exiting."
-                exit 1
-              fi
-            elif [[ "$ddl_content" == *'ALTER TABLE'* ]]; then
-                echo "WARNING: Executing ALTER TABLE statement: $file. Data loss may occur."
-                if ! bq query --use_legacy_sql=false < "$file"; then
-                  echo "Error executing ALTER TABLE: $file. Exiting."
-                  exit 1
-                fi
-            elif [[ "$ddl_content" == *'CREATE OR REPLACE VIEW'* ]]; then
-                echo "Executing CREATE OR REPLACE VIEW statement: $file"
-                if ! bq query --use_legacy_sql=false < "$file"; then
-                  echo "Error executing CREATE OR REPLACE VIEW: $file. Exiting."
-                  exit 1
-                fi
-            else
-              echo "Executing other DDL statement: $file"
-              if ! bq query --use_legacy_sql=false < "$file"; then
-                echo "Error executing other DDL: $file. Exiting."
-                exit 1
-              fi
-
-            fi
-            echo "DDL: $file executed successfully"
+      - name: Execute DDLs on BigQuery
+        run: |
+          DATASET_ENV='dev'
+          PROJECT_ENV='d'
+          for ddl_file in src/python/cloud_composer/ddls/*.sql; do
+            echo "Executing DDL: $ddl_file"
+            bq query --use_legacy_sql=false "$(sed "s/<PROJECT-ENV>/$PROJECT_ENV/g; s/<DATASET-ENV>/$DATASET_ENV/g" $ddl_file)"
           done
