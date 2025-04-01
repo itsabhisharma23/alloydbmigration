@@ -6,7 +6,7 @@ from airflow.models import DagBag
 
 @pytest.fixture(scope="session")
 def dagbag():
-    dags_path = str((Path(__file__).parent.parent / "dags").resolve())
+    dags_path = str((Path(__file__).parent.parent / "src/python/cloud_composer/dags").resolve())
     sys.path.insert(0, dags_path)
 
     # Generate dynamic DAGs before creating the DagBag
