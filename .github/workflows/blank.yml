@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - feature/dagbag2
+    paths:
+      - "src/python/cloud_composer/dags/**"
 
 jobs:
   test:
