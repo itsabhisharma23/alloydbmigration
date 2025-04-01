@@ -53,8 +53,12 @@ jobs:
           fi
 
           for file in $ddl_files; do
+            sed -i "s/<PROJECT-ENV>/$PROJECT_ENV/g" "$file"
+            sed -i "s/<DATASET-ENV>/$DATASET_ENV/g" "$file"
+            
             ddl_content=$(cat "$file")
             echo "Executing DDL: $file"
+            echo $ddl_content
             if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
               echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed for DDLs deployments. Exiting."
               exit 1
