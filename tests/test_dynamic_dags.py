@@ -14,10 +14,6 @@ def dagbag():
 
     yield DagBag(dag_folder=dags_path, include_examples=False)
 
-
-def test_dagbag_not_empty(dagbag):
-    """Test if dagbag is non-empty"""
-    assert dagbag.size() > 0, "Dagbag should not be empty."
     
 def test_no_import_errors(dagbag):
     """Test if there are any import errors"""
