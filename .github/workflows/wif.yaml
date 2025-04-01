@@ -44,7 +44,7 @@ jobs:
         run: |
           DATASET_ENV='dev'
           PROJECT_ENV='d'
-          ddl_files=$(find src/python/cloud_composer/ddls -name "*.sql" | sort)
+          ddl_files=$(find src/python/cloud_composer/ddls -name "*.ddl" | sort)
 
           for file in $ddl_files; do
             ddl_content=$(cat "$file")
