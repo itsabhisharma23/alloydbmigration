@@ -1,0 +1,34 @@
+name: Airflow Dag - Tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/python/cloud_composer/dags/**"
+  pull_request:
+    paths:
+      - "src/python/cloud_composer/dags/**"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+jobs:
+  airflow-dag-tests:
+    runs-on: self-hosted
+    steps:
+      - name: checkout source code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12' #Adjust version as needed.
+      - uses: ./.github/actions/common
+
+      - name: Install dependencies
+        run: |
+          pip install apache-airflow
+          pip install pytest
+
+      - name: Test airflow DAGs
+        run: |
+          pushd tests || exit
+          python3 -m pytest test_dynamic_dags.py -v || exit
+          popd || exit
