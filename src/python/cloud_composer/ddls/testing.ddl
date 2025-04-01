@@ -1,1 +1,1 @@
-CREATE TABLE `stock-data-ingess.Drones.testingabhitable` (name string)
+CREATE TABLE `stock-data-ingess.Drones.testingabhitable` (name string) 
