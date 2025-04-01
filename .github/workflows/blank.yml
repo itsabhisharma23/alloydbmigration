@@ -19,11 +19,12 @@ jobs:
           python-version: '3.12' #Adjust version as needed.
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Test DAGs with Pytest
         run: |
-          pip install pytest==6.2.5
+          pip install apache-airflow
+          pip install pytest
+
+      - name: Test airflow DAGs
+        run: |
           pushd tests || exit
           python3 -m pytest test_dynamic_dags.py -v || exit
           popd || exit
