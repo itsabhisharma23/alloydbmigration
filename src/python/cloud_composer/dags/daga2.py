@@ -3,6 +3,7 @@ from airflow.operators.bash import BashOperator
 from datetime import datetime
 from airflow.utils.dates import days_ago
 
+
 default_args = {
     'owner': 'airflow',
     'start_date': days_ago(1),
