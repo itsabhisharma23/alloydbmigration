@@ -27,6 +27,6 @@ jobs:
 
       - name: Test airflow DAGs
         run: |
-          pushd tests || exit
-          python3 -m pytest test_dynamic_dags.py -v || exit
+          pushd src/python/cloud_composer/tests || exit
+          python3 -m pytest dag_tests.py -v || exit
           popd || exit
