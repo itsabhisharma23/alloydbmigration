@@ -6,7 +6,6 @@ default_args = {
     'owner': 'abhishek',
     'start_date': days_ago(1),
 }
-
 with DAG(
     dag_id='static_example',
     default_args=default_args,
