@@ -3,7 +3,7 @@ name: Test Airflow DAGs
 on:
   push:
     branches:
-      - feature/dagbagtests
+      - feature/dagbag2
 
 jobs:
   test:
