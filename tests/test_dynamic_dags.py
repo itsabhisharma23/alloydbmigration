@@ -10,7 +10,7 @@ def dagbag():
     sys.path.insert(0, dags_path)
 
     # Generate dynamic DAGs before creating the DagBag
-    dynamic_dag_generator.generate_dags()
+    #dynamic_dag_generator.generate_dags()
 
     yield DagBag(dag_folder=dags_path, include_examples=False)
 
