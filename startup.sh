@@ -73,6 +73,7 @@ echo "--------------------------------------------------------------------------
 echo ""
 
 # Create the connection profile for source(PostgreSQL DB)
+# Provide --cloudsql-instance if source DB is CloudSQL(Postgre) 
 
 echo "${YELLOW}Creating source profile...${NC}"
 
@@ -91,6 +92,41 @@ if [ $? -eq 0 ]; then
   echo "${GREEN}Connection profile \"${BOLD}$SOURCE_PROFILE_NAME${NC}${GREEN}\" created successfully.${NC}"
 else
   echo "${RED}Error: Failed to create connection profile \"${BOLD}$SOURCE_PROFILE_NAME${NC}${RED}\".${NC}"
+  exit 1
+fi
+
+# Create the connection profile for alloyDB/CloudSQL(postgresql) destination
+# Provide --cloudsql-instance if source DB is CLoudSQL(Postgre) else provide --alloydb-cluster property.
+
+if (( target_type_name == "AlloyDB" )); then
+    echo "\n${YELLOW}creating destination profile for AlloyDB.${NC}\n"
+    gcloud database-migration connection-profiles create postgresql $DESTINATION_PROFILE_NAME \
+    --region=$REGION \
+    --display-name=$DESTINATION_PROFILE_NAME \
+    --alloydb-cluster=$DESTINATION_ALLOYDB \
+    --username=$DESTINATION_USER \
+    --host=$DESTINATION_HOST \
+    --port=$DESTINATION_PORT \
+    --prompt-for-password \
+    --project=$PROJECT_ID
+else
+    echo "\n${YELLOW}creating destination profile for CloudSQL.${NC}\n"
+    gcloud database-migration connection-profiles create postgresql $DESTINATION_PROFILE_NAME \
+    --region=$REGION \
+    --display-name=$DESTINATION_PROFILE_NAME \
+    --cloudsql-instance=$DESTINATION_CloudSQL_INSTANCE_NAME \
+    --username=$DESTINATION_USER \
+    --host=$DESTINATION_HOST \
+    --port=$DESTINATION_PORT \
+    --prompt-for-password \
+    --project=$PROJECT_ID
+fi
+
+# Check if the profile creation was successful
+if [ $? -eq 0 ]; then
+  echo "${GREEN}Connection profile \"${BOLD}$DESTINATION_PROFILE_NAME${NC}${GREEN}\" created successfully.${NC}"
+else
+  echo "${RED}Error: Failed to create connection profile \"${BOLD}$DESTINATION_PROFILE_NAME${NC}${RED}\".${NC}"
   exit 1
 fi
 exit 0 # Exit with a success code
