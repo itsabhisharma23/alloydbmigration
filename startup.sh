@@ -1,5 +1,13 @@
 #!/bin/bash
 
+CONFIG_FILE="migration.config" 
+
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+RED=$(tput setaf 1)
+BOLD=$(tput bold)
+NC=$(tput sgr0)
+
 # Source the banner script (assuming it exists in the same directory)
 if [ -f "./banner.sh" ]; then
   source ./banner.sh
@@ -51,8 +59,38 @@ case "$target_type" in
     ;;
 esac
 
-echo -e "\nSelected Source: $source_type_name"
-echo "Selected Target: $target_type_name"
+if [[ -f "$CONFIG_FILE" ]]; then
+  echo "\nLoading your configuration from $CONFIG_FILE"
+  source "$CONFIG_FILE"
+else
+  echo "\nWarning: Configuration file '$CONFIG_FILE' not found. "
+fi
 
+echo ""
+echo "-------------------------------------------------------------------------------------"
+echo "You are about to migrate databases from ${GREEN}$source_type_name${NC} to ${GREEN}$target_type_name${NC}."
+echo "-------------------------------------------------------------------------------------"
+echo ""
 
+# Create the connection profile for source(PostgreSQL DB)
+
+echo "${YELLOW}Creating source profile...${NC}"
+
+# connection profile for source DB
+gcloud database-migration connection-profiles create postgresql "$SOURCE_PROFILE_NAME" \
+    --region="$REGION" \
+    --display-name="$SOURCE_PROFILE_NAME" \
+    --username="$SOURCE_USER" \
+    --host="$SOURCE_HOST" \
+    --port="$SOURCE_PORT" \
+    --prompt-for-password \
+    --project="$PROJECT_ID"
+
+# Check if the profile creation was successful
+if [ $? -eq 0 ]; then
+  echo "${GREEN}Connection profile \"${BOLD}$SOURCE_PROFILE_NAME${NC}${GREEN}\" created successfully.${NC}"
+else
+  echo "${RED}Error: Failed to create connection profile \"${BOLD}$SOURCE_PROFILE_NAME${NC}${RED}\".${NC}"
+  exit 1
+fi
 exit 0 # Exit with a success code
