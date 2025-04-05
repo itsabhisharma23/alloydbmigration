@@ -34,6 +34,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
           version: '>= 363.0.0'
+
       - name: Sync DAGs to GCS
         run: |
           DATASET_ENV='dev'
@@ -46,41 +47,41 @@ jobs:
         run: |
           DATASET_ENV='dev'
           PROJECT_ENV='d'
-      
+
           # Determine the list of modified or added DDL files
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
             ddl_files=$(git diff --name-only -r HEAD^1 HEAD -- 'src/python/cloud_composer/ddls/*.ddl')
           else
             ddl_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- 'src/python/cloud_composer/ddls/*.ddl')
           fi
-      
+
           if [ -z "$ddl_files" ]; then
             echo "No DDL files found. Skipping DDL execution."
           else
             for file in $ddl_files; do
               echo "Processing DDL file: $file"
-      
+
               # Environment variable replacement
               if ! sed -i "s/<PROJECT-ENV>/$PROJECT_ENV/g" "$file"; then
                 echo "ERROR: Failed to replace <PROJECT-ENV> in $file"
                 exit 1
               fi
-      
+
               if ! sed -i "s/<DATASET-ENV>/$DATASET_ENV/g" "$file"; then
                 echo "ERROR: Failed to replace <DATASET-ENV> in $file"
                 exit 1
               fi
-      
+
               ddl_content=$(cat "$file")
-      
+
               # Prevent CREATE OR REPLACE TABLE
               if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
                 echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed for DDLs deployments. Exiting."
                 exit 1
               fi
-      
+
               echo "Executing DDL: $file"
-      
+
               # Execute DDL and handle errors
               bq query --use_legacy_sql=false < "$file" 2>&1 > bq_output.txt || {
                 exit_code="$?"
@@ -89,11 +90,7 @@ jobs:
                 cat bq_output.txt
                 exit 1
               }
-      
+
               echo "DDL: $file executed successfully"
             done
           fi
-                      echo "DDL: $file executed successfully"
-                    fi
-                  done
-                fi
