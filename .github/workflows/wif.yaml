@@ -46,59 +46,54 @@ jobs:
         run: |
           DATASET_ENV='dev'
           PROJECT_ENV='d'
-          # Determine the list of modified or added DDL files based on the event type.
+      
+          # Determine the list of modified or added DDL files
           if [[ "${{ github.event_name }}" == 'pull_request' ]]; then
-            # For pull requests, get changes for ddl files with base and head of the PR
             ddl_files=$(git diff --name-only -r HEAD^1 HEAD -- 'src/python/cloud_composer/ddls/*.ddl')
           else
-            # Using github context values like github.event.before and github.event.after to fetch latest changes
             ddl_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} -- 'src/python/cloud_composer/ddls/*.ddl')
           fi
-
+      
           if [ -z "$ddl_files" ]; then
             echo "No DDL files found. Skipping DDL execution."
           else
             for file in $ddl_files; do
               echo "Processing DDL file: $file"
-
+      
               # Environment variable replacement
               if ! sed -i "s/<PROJECT-ENV>/$PROJECT_ENV/g" "$file"; then
                 echo "ERROR: Failed to replace <PROJECT-ENV> in $file"
                 exit 1
               fi
-
+      
               if ! sed -i "s/<DATASET-ENV>/$DATASET_ENV/g" "$file"; then
                 echo "ERROR: Failed to replace <DATASET-ENV> in $file"
                 exit 1
               fi
-
+      
               ddl_content=$(cat "$file")
-
+      
               # Prevent CREATE OR REPLACE TABLE
               if [[ "$ddl_content" == *'CREATE OR REPLACE TABLE'* ]]; then
                 echo "ERROR: CREATE OR REPLACE TABLE detected in $file. This is not allowed for DDLs deployments. Exiting."
                 exit 1
               fi
-
+      
               echo "Executing DDL: $file"
-
+      
               # Execute DDL and handle errors
-              output=$(bq query --use_legacy_sql=false < "$file" 2>&1)
-              exit_code="$?"
-
-              if [[ "$exit_code" -ne 0 ]]; then
-                # Check for "Table already exists" error (and continue if it is)
-                if echo "$output" | grep -q 'Already Exists: Table'; then
-                  echo "WARNING: Table already exists. Skipping $file"
-                else
-                  # Print the full error message and fail the workflow
-                  echo "ERROR: Failed to execute DDL: $file"
-                  echo "BQ Error Message:"
-                  echo "$output"
-                  exit 1
-                fi
-              else
-                echo "DDL: $file executed successfully"
-              fi
+              bq query --use_legacy_sql=false < "$file" 2>&1 > bq_output.txt || {
+                exit_code="$?"
+                echo "ERROR: Failed to execute DDL: $file (Exit Code: $exit_code)"
+                echo "BQ Error Output (from bq_output.txt):"
+                cat bq_output.txt
+                exit 1
+              }
+      
+              echo "DDL: $file executed successfully"
             done
           fi
+                      echo "DDL: $file executed successfully"
+                    fi
+                  done
+                fi
