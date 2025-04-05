@@ -1,1 +1,1 @@
-CREATE TABLE `stock-data-ingess.Dronewws.dr123` (name STRING) 
+CREATE TABLE `stock-data-ingess.Dronewws.dr123` (name STRING)  
