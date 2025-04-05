@@ -85,10 +85,14 @@ jobs:
               # Execute DDL and handle errors
               bq query --use_legacy_sql=false < "$file" 2>&1 > bq_output.txt || {
                 exit_code="$?"
-                echo "ERROR: Failed to execute DDL: $file (Exit Code: $exit_code)"
-                echo "BQ Error Output (from bq_output.txt):"
-                cat bq_output.txt
-                exit 1
+                if cat bq_output.txt | grep -q 'Already Exists: Table'; then
+                  echo "WARNING: Table already exists. Skipping $file"
+                else
+                  echo "ERROR: Failed to execute DDL: $file (Exit Code: $exit_code)"
+                  echo "BQ Error Output (from bq_output.txt):"
+                  cat bq_output.txt
+                  exit 1
+                fi
               }
 
               echo "DDL: $file executed successfully"
