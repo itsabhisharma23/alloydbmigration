@@ -1,12 +1,46 @@
 #!/bin/bash
 
-#import vars
-source <(grep -E '^\w+=' vars.sh)
+CONFIG_FILE="migration.config" 
 
+
+GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
+RED=$(tput setaf 1)
+BOLD=$(tput bold)
+NC=$(tput sgr0)
+
+if [[ -f "$CONFIG_FILE" ]]; then
+  echo "Loading your configuration from $CONFIG_FILE"
+  source "$CONFIG_FILE"
+else
+  echo "Warning: Configuration file '$CONFIG_FILE' not found. "
+fi
+
+echo ""
+echo ""
+echo "${GREEN}Provisioning required resources...${NC}"
+echo ""
+echo "---------------------------------------------------------"
+echo "${BOLD}Creating Bigquery Result Dataset and Table${NC}"
+echo ""
+echo "Creating BigQuery results table in project '$PROJECT_ID' and dataset '$BQ_DVT_DATASET'..."
+# Create the BigQuery dataset if it doesn't exist
+bq mk --location="$REGION" --dataset "$PROJECT_ID":"$BQ_DVT_DATASET" 2> /dev/null || echo "Dataset '$PROJECT_ID:$BQ_DVT_DATASET' already exists."
+# Read the SQL content from the file
+SQL_CONTENT=$(cat validation_results.sql)
+# Replace the placeholders with the provided parameters
+MODIFIED_SQL=$(echo "$SQL_CONTENT" | sed "s/__PROJECT_ID__/${PROJECT_ID}/g" | sed "s/__BQ_DVT_DATASET__/${BQ_DVT_DATASET}/g")
+# Execute the modified SQL query
+bq query --use_legacy_sql=false --nouse_cache --project_id="$PROJECT_ID" "$MODIFIED_SQL"
+echo "BigQuery results table created successfully (or already existed) in '$PROJECT_ID:$BQ_DVT_DATASET'."
+echo "---------------------------------------------------------"
 # Install packages
+echo "${BOLD}Installing required packages... Getting ready...${NC}"
+
 sudo apt-get update
 sudo apt-get install -yq git python3 python3-pip python3-distutils
 sudo pip install --upgrade pip virtualenv
+
 # Installation
 echo "Installing PostgreSQL client version 14.10..."
 
