@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG_FILE="migration.config" 
+CONFIG_FILE="./migration.config" 
 
 
 GREEN=$(tput setaf 2)
@@ -34,7 +34,60 @@ MODIFIED_SQL=$(echo "$SQL_CONTENT" | sed "s/__PROJECT_ID__/${PROJECT_ID}/g" | se
 bq query --use_legacy_sql=false --nouse_cache --project_id="$PROJECT_ID" "$MODIFIED_SQL"
 echo "BigQuery results table created successfully (or already existed) in '$PROJECT_ID:$BQ_DVT_DATASET'."
 echo "---------------------------------------------------------"
+echo ""
+echo "---------------------------------------------------------"
+echo "${BOLD}Do you want to create a Virtual Machine for Data Validation?${NC}"
+echo ""
+echo "Note: If you already have a VM with required permissions, you don't need to create one."
+read -p "Enter your choice (y/n): " is_vm_required
+is_vm_required="${is_vm_required,,}"
+if [[ "$is_vm_required" == "y" ]]; then
+    echo "${BOLD}You chose 'yes'. Moving ahed with VM creation.${NC}"
+    #creating service account for least previleage principle
+    echo ""
+    echo "${BOLD}Creating Service Account to run DVT...${NC}"
+    gcloud iam service-accounts create $SERVICE_ACCOUNT --display-name="Service Account for DVT"
+    echo ""
+    echo "${BOLD}Granting BQ Editor role to Service Account...${NC}"
+    #granting BQ editor role to this service account
+    gcloud projects add-iam-policy-binding $PROJECT_ID \
+      --member="serviceAccount:$SERVICE_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com" \
+      --role="roles/bigquery.dataEditor"
+    echo ""
+    echo "${BOLD}Creating VM...${NC}"
+    gcloud compute instances create $INSTANCE_NAME \
+      --project=$PROJECT_ID \
+      --zone=$ZONE \
+      --machine-type=$MACHINE_TYPE \
+      --network=$NETWORK_NAME \
+      --subnet=$SUBNET_NAME \
+      --service-account=$SERVICE_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com \
+      --tags="dms-tcp-proxy" \
+      --boot-disk-size=$BOOT_DISK \
+      --boot-disk-type=$DISK_TYPE \
+      --image=$IMAGE \
+      --scopes=cloud-platform,bigquery \
+      --no-address --shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring
+    echo "VM is being created...please wait"
+
+    # --- Check and Wait Loop ---
+    while true; do
+        STATUS=$(gcloud compute instances describe "$INSTANCE_NAME" \
+            --project="$PROJECT_ID" --zone="$ZONE" --format="value(status)")
+
+        if [[ "$STATUS" == "RUNNING" ]]; then
+            echo "VM instance '$INSTANCE_NAME' is RUNNING!"
+            break  # Exit the loop when the VM is running
+        else
+            echo "VM instance '$INSTANCE_NAME' is still in $STATUS state. Waiting..."
+            sleep 5  # Wait for 5 seconds before checking again
+        fi
+    done
+else
+    echo "You choose 'no'. Skipping VM creation and executing the validations in the current machine."
+fi
 # Install packages
+exit 1
 echo "${BOLD}Installing required packages... Getting ready...${NC}"
 
 sudo apt-get update

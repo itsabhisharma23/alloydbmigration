@@ -1,4 +1,4 @@
-CREATE TABLE `__PROJECT_ID__.__BQ_DVT_DATASET__.results'`
+CREATE TABLE `__PROJECT_ID__.__BQ_DVT_DATASET__.results`
 (
   run_id STRING OPTIONS(description="Unique validation run id"),
   validation_name STRING OPTIONS(description="Unique name of the validation"),
