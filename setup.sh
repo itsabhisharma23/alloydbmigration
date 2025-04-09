@@ -27,7 +27,7 @@ echo "Creating BigQuery results table in project '$PROJECT_ID' and dataset '$BQ_
 # Create the BigQuery dataset if it doesn't exist
 bq mk --location="$REGION" --dataset "$PROJECT_ID":"$BQ_DVT_DATASET" 2> /dev/null || echo "Dataset '$PROJECT_ID:$BQ_DVT_DATASET' already exists."
 # Read the SQL content from the file
-SQL_CONTENT=$(cat results_schema.sql)
+SQL_CONTENT=$(cat sqls/results_schema.sql)
 # Replace the placeholders with the provided parameters
 MODIFIED_SQL=$(echo "$SQL_CONTENT" | sed "s/__PROJECT_ID__/${PROJECT_ID}/g" | sed "s/__BQ_DVT_DATASET__/${BQ_DVT_DATASET}/g")
 # Execute the modified SQL query
