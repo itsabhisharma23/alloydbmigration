@@ -129,7 +129,36 @@ if [[ "$is_vm_required" == "y" ]]; then
             # Execute the prevalidations script on the VM
             echo "${BOLD}Executing pre-validations on the VM '${INSTANCE_NAME}'...${NC}"
             gcloud compute ssh --project "$PROJECT_ID" --zone "$ZONE" --ssh-key-file "$KEY_FILE" "$USERNAME@$INSTANCE_NAME" --command "bash prevalidations.sh"
+            echo ""
+            echo "${YELLOW}Downloading files...${NC}"
+            echo "Downloading CSV file from VM..."
+            # Function to check the exit status of gcloud scp
+            handle_scp_error() {
+              local filename="$1"
+              if [ $? -ne 0 ]; then
+                echo "${BOLD}${RED}Error downloading '$filename' from VM '${INSTANCE_NAME}'. Please ensure the file exists on the VM.${NC}"
+                exit 1
+              fi
+            }
 
+            # Download users_and_roles.sql
+            echo "Downloading users_and_roles.sql..."
+            gcloud compute scp --project="$PROJECT_ID" --zone="$ZONE" --ssh-key-file="$KEY_FILE" "$INSTANCE_NAME":"users_and_roles.sql" "users_and_roles.sql"
+            handle_scp_error "users_and_roles.sql"
+
+            # Download permissions.sql
+            echo "Downloading permissions.sql..."
+            gcloud compute scp --project="$PROJECT_ID" --zone="$ZONE" --ssh-key-file="$KEY_FILE" "$INSTANCE_NAME":"permissions.sql" "permissions.sql"
+            handle_scp_error "permissions.sql"
+
+            # Download alter_owners.sql
+            echo "Downloading alter_owners.sql..."
+            gcloud compute scp --project="$PROJECT_ID" --zone="$ZONE" --ssh-key-file="$KEY_FILE" "$INSTANCE_NAME":"alter_owners.sql" "alter_owners.sql"
+            handle_scp_error "alter_owners.sql"
+
+            echo "${BOLD}Successfully downloaded SQL files from VM.${NC}"
+        else
+            echo "Note: You can login to the VM manually and run prevalidations command. Please check guide here : https://github.com/itsabhisharma23/alloydbmigration/blob/main/README.md"
         fi
     else
         echo ""
@@ -145,41 +174,6 @@ else
 fi
 
 
-# Install packages
-exit 1
-
-
-
-#data-validation validate column \
-#  -sc $CONN_NAME \
-#  -tc $DEST_CONN_NAME \
-#  -tbls public.testdata
-
-########################################################
-
-echo "################################"
-echo "Get all users and permissions details"
-
-#Execute these files in the same order when migrating users and permissions
-
-pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
-    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g' \
-     | grep -E '^(\\connect|CREATE ROLE|ALTER ROLE)' > users_and_roles.sql
-
-pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
-    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g;s/GRANTED BY[^;]*;/;/g' \
-     | grep -E '^(GRANT|REVOKE|\\connect)' > permissions.sql
-
-pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
-    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g' \
-     | grep -E '^(\\connect|ALTER.*OWNER.*)' > alter_owners.sql
-
-
-
-
-
-echo "#################################"
-echo "Exit now by providing 'exit' command."
 
 
 

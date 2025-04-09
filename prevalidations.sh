@@ -168,7 +168,38 @@ for schema in "${SCHEMAS[@]}"; do
   done
 
 done
-exit 1
+echo ""
+echo "All Checks are Done! To view results please check Bigquery Table"
+echo ""
+echo "---------------------------------------------------------"
+echo "${BOLD}Get all users and permissions details${NC}"
+
+#Execute these files in the same order when migrating users and permissions
+pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
+    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g' \
+     | grep -E '^(\\connect|CREATE ROLE|ALTER ROLE)' > users_and_roles.sql
+
+pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
+    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g;s/GRANTED BY[^;]*;/;/g' \
+     | grep -E '^(GRANT|REVOKE|\\connect)' > permissions.sql
+
+pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
+    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g' \
+     | grep -E '^(\\connect|ALTER.*OWNER.*)' > alter_owners.sql
+
+sed -E -e '/^ALTER\s+(DATABASE|SCHEMA)\b/d' -e '/^$/d' alter_owners.sql > alter_owners_1.sql
+sed -nE '/^ALTER\s+SCHEMA\s+\w+/p' alter_owners.sql > alter_owners_2.sql
+sed -nE '/^(\\connect|ALTER\s+DATABASE\s+\w+)/p' alter_owners.sql > alter_owners_3.sql
+cat "alter_owners_1.sql" >> "temp_owners.sql"    
+cat "alter_owners_2.sql" >> "temp_owners.sql"      
+cat "alter_owners_3.sql" >> "temp_owners.sql"   
+mv "temp_owners.sql"  "alter_owners.sql"
+
+echo "---------------------------------------------------------"
+echo "Exit now by providing 'exit' command."
+
+exit 0
+
 vim -c "wq" "$INPUT_CSV"
 echo "Validating table row count with filters..."
 tail -n +2 "$INPUT_CSV" | while IFS=, read -r schema_name table_name filter_condition; do
@@ -188,25 +219,3 @@ done
 
 exit 1
 
-echo "Downloading CSV file from VM..."
-gcloud compute scp --project="$PROJECT_ID" --zone="$ZONE" --ssh-key-file="$KEY_FILE" "$INSTANCE_NAME":"users_and_roles.sql" "$LOCAL_SQL_FILE_1"
-gcloud compute scp --project="$PROJECT_ID" --zone="$ZONE" --ssh-key-file="$KEY_FILE" "$INSTANCE_NAME":"permissions.sql" "$LOCAL_SQL_FILE_2"
-gcloud compute scp --project="$PROJECT_ID" --zone="$ZONE" --ssh-key-file="$KEY_FILE" "$INSTANCE_NAME":"alter_owners.sql" "$LOCAL_SQL_FILE_3"
-
-echo "###################################################################"
-echo "A SQL file containing all the users, roles and permissions is downloaded to your machine. Please edit the file if required."
-echo "Make sure you have all the usernames and passwords added in 'roles_pwd.csv' before proceeding further."
-echo "Script is going to append alter commands to set passwords in 'schema_users_and_permissions.sql' file."
-echo "###################################################################"
-echo "Input -> roles_pwd.csv"
-echo "Output -> schema_users_and_permissions.sql (adding alter statements for passwords)"
-read -p "Ready to proceed? (y/n): " PROCEED
-    if [[ ! "$PROCEED" =~ ^[Yy]$ ]]; then
-        echo "Exiting the script..."
-        exit 0
-    else 
-        bash prepare_roles_pwd.sh
-    fi
-
-
-echo "CSV file downloaded to: $LOCAL_SQL_FILE"
