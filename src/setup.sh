@@ -56,18 +56,21 @@ if [[ "$is_vm_required" == "y" ]]; then
     echo ""
     echo "${BOLD}Creating VM...${NC}"
     gcloud compute instances create $INSTANCE_NAME \
-      --project=$PROJECT_ID \
-      --zone=$ZONE \
-      --machine-type=$MACHINE_TYPE \
-      --network=$NETWORK_NAME \
-      --subnet=$SUBNET_NAME \
-      --service-account=$SERVICE_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com \
-      --tags="dms-tcp-proxy" \
-      --boot-disk-size=$BOOT_DISK \
-      --boot-disk-type=$DISK_TYPE \
-      --image=$IMAGE \
-      --scopes=cloud-platform,bigquery \
-      --no-address --shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring
+    --project=$PROJECT_ID \
+    --zone=$ZONE \
+    --machine-type=$MACHINE_TYPE \
+    --network=$NETWORK_NAME \
+    --subnet=$SUBNET_NAME \
+    --service-account=$SERVICE_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com \
+    --boot-disk-size=$BOOT_DISK \
+    --boot-disk-type=$DISK_TYPE \
+    --image=$IMAGE \
+    --scopes=cloud-platform,bigquery \
+    --no-address --shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring
+    if [ $? -ne 0 ]; then
+      echo "${BOLD}${RED}Error creating VM. Exiting...${NC}"
+      exit 1
+    fi
     echo "VM is being created...please wait"
 
     # --- Check and Wait Loop ---
@@ -83,6 +86,7 @@ if [[ "$is_vm_required" == "y" ]]; then
             sleep 5  # Wait for 5 seconds before checking again
         fi
     done
+    echo "---------------------------------------------------------"
 else
     echo "You choose 'no'. Skipping VM creation and executing the validations in the current machine."
 fi
