@@ -151,11 +151,11 @@ for schema in "${SCHEMAS[@]}"; do
   tables=$(psql -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT -d $DB_NAME -At -c "SELECT table_name FROM information_schema.tables WHERE table_schema = '$schema'")
   # Iterate through tables
   for table in $tables; do
-    echo "  Validating table schema for: $table"
+    echo "  Validating table row count for: $table"
 
     # Schema Validations
-    echo "Validating table schema for: $table"
-    data-validation validate schema \
+    echo "Validating table wor count for: $table"
+    data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
     --tables-list $schema.$table \
@@ -169,34 +169,8 @@ for schema in "${SCHEMAS[@]}"; do
 
 done
 echo ""
-echo "All Pre-Cutover Validation Checks are Done! To view results please check Bigquery Table"
+echo "All Post-Cutover Validations Checks are Done! To view results please check Bigquery Table"
 echo ""
-echo "---------------------------------------------------------"
-echo "${BOLD}Get all users and permissions details${NC}"
-
-#Execute these files in the same order when migrating users and permissions
-pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
-    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g' \
-     | grep -E '^(\\connect|CREATE ROLE|ALTER ROLE)' > users_and_roles.sql
-
-pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
-    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g;s/GRANTED BY[^;]*;/;/g' \
-     | grep -E '^(GRANT|REVOKE|\\connect)' > permissions.sql
-
-pg_dumpall -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT --exclude-database="alloydbadmin|cloudsqladmin|rdsadmin" \
-    --schema-only --no-role-passwords  | sed '/cloudsqladmin/d;/cloudsqlagent/d;/cloudsqliamserviceaccount/d;/cloudsqliamuser/d;/cloudsqlimportexport/d;/cloudsqlreplica/d;/cloudsqlsuperuser/d;/rds.*/d;s/NOSUPERUSER//g' \
-     | grep -E '^(\\connect|ALTER.*OWNER.*)' > alter_owners.sql
-
-sed -E -e '/^ALTER\s+(DATABASE|SCHEMA)\b/d' -e '/^$/d' alter_owners.sql > alter_owners_1.sql
-sed -nE '/^ALTER\s+SCHEMA\s+\w+/p' alter_owners.sql > alter_owners_2.sql
-sed -nE '/^(\\connect|ALTER\s+DATABASE\s+\w+)/p' alter_owners.sql > alter_owners_3.sql
-cat "alter_owners_1.sql" >> "temp_owners.sql"    
-cat "alter_owners_2.sql" >> "temp_owners.sql"      
-cat "alter_owners_3.sql" >> "temp_owners.sql"   
-mv "temp_owners.sql"  "alter_owners.sql"
-
-echo "---------------------------------------------------------"
-echo "Exit now by providing 'exit' command."
 
 exit 0
 
