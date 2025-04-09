@@ -52,7 +52,7 @@ if [[ "$is_vm_required" == "y" ]]; then
     #granting BQ editor role to this service account
     gcloud projects add-iam-policy-binding $PROJECT_ID \
       --member="serviceAccount:$SERVICE_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com" \
-      --role="roles/bigquery.dataEditor"
+      --role="roles/bigquery.dataEditor" --condition=None
     echo ""
     echo "${BOLD}Creating VM...${NC}"
     gcloud compute instances create $INSTANCE_NAME \
