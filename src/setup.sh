@@ -55,7 +55,7 @@ if [[ "$is_vm_required" == "y" ]]; then
       --role="roles/bigquery.dataEditor" --condition=None
     echo ""
     echo "${BOLD}Creating VM...${NC}"
-    gcloud compute instances create $INSTANCE_NAME --project=$PROJECT_ID --zone=$ZONE --machine-type=$MACHINE_TYPE --network=$NETWORK_NAME -subnet=$SUBNET_NAME --service-account=$SERVICE_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com --boot-disk-size=$BOOT_DISK --boot-disk-type=$DISK_TYPE --image=$IMAGE --scopes=cloud-platform,bigquery --no-address --shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring
+    gcloud compute instances create $INSTANCE_NAME --project=$PROJECT_ID --zone=$ZONE --machine-type=$MACHINE_TYPE --network=$NETWORK_NAME --subnet=$SUBNET_NAME --service-account=$SERVICE_ACCOUNT@$PROJECT_ID.iam.gserviceaccount.com --boot-disk-size=$BOOT_DISK --boot-disk-type=$DISK_TYPE --image=$IMAGE --scopes=cloud-platform,bigquery --no-address --shielded-secure-boot --shielded-vtpm --shielded-integrity-monitoring
     if [ $? -ne 0 ]; then
       echo "${BOLD}${RED}Error creating VM. Exiting...${NC}"
       exit 1
