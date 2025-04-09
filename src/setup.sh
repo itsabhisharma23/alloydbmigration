@@ -147,41 +147,6 @@ fi
 
 # Install packages
 exit 1
-echo "${BOLD}Installing required packages... Getting ready...${NC}"
-
-sudo apt-get update
-sudo apt-get install -yq git python3 python3-pip python3-distutils
-sudo pip install --upgrade pip virtualenv
-
-# Installation
-echo "Installing PostgreSQL client version 14.10..."
-
-# Add PostgreSQL repository if not already added
-echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
-sudo apt-get update
-
-# Install specific version
-sudo apt-get install -y postgresql-client-14
-
-echo "###############################"
-echo "INSTALL DATA VALIDATION TOOL\n\n"
-
-virtualenv -p python3 env
-source env/bin/activate
-#Check if DVT is already installed
-if pip3 show google-pso-data-validator >/dev/null 2>&1; then
-    echo "DVT (google-pso-data-validator) is installed."
-
-    # Optionally, show version information
-    pip3 show google-pso-data-validator | grep "Version"
-else
-    echo "DVT (google-pso-data-validator) is not installed."
-    #Install DVT
-    echo "installing DVT..."
-    # Install DVT
-    pip install google-pso-data-validator
-fi
 
 
 
