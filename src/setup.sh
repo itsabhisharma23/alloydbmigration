@@ -27,7 +27,7 @@ echo "Creating BigQuery results table in project '$PROJECT_ID' and dataset '$BQ_
 # Create the BigQuery dataset if it doesn't exist
 bq mk --location="$REGION" --dataset "$PROJECT_ID":"$BQ_DVT_DATASET" 2> /dev/null || echo "Dataset '$PROJECT_ID:$BQ_DVT_DATASET' already exists."
 # Read the SQL content from the file
-SQL_CONTENT=$(cat validation_results.sql)
+SQL_CONTENT=$(cat results_schema.sql)
 # Replace the placeholders with the provided parameters
 MODIFIED_SQL=$(echo "$SQL_CONTENT" | sed "s/__PROJECT_ID__/${PROJECT_ID}/g" | sed "s/__BQ_DVT_DATASET__/${BQ_DVT_DATASET}/g")
 # Execute the modified SQL query
@@ -76,9 +76,49 @@ if [[ "$is_vm_required" == "y" ]]; then
         fi
     done
     echo "---------------------------------------------------------"
+    echo "${GREEN}VM is ready to perform further actions...${NC}"
+    echo ""
+    echo "${BOLD} Do you want the tool to login to VM and run validations?${NC}"
+    echo "Note: This step will register SSH keys to VM."
+    echo ""
+    echo "${YELLOW}${BOLD}Setting up SSH keys.${NC}"
+    # --- Fetch Username from gcloud (without domain) ---
+    # Use gcloud config to get account or default username if none
+    FULL_USERNAME=$(gcloud config get-value account 2> /dev/null || echo "defaultuser")
+    # Strip away the domain part using parameter expansion
+    USERNAME=${FULL_USERNAME%@*}
+    echo "Using username: $USERNAME"
+
+    # --- Key Generation ---
+    # You can comment out this section and provide your existing key as well.
+
+    if [[ -f "$KEY_FILE" && -f "$KEY_FILE.pub" ]]; then
+        read -p "Key files already exist. Overwrite? (y/n): " OVERWRITE
+        if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
+            echo "Keyfile already exists. Using the same."
+        else 
+            # Include username in SSH key comment to avoid warnings
+            ssh-keygen -t rsa -b 4096 -f "$KEY_FILE" -C "$USERNAME"
+            chmod 600 "$KEY_FILE"
+        fi
+    fi
+    # --- Add Key to GCP VM ---
+
+    echo "Adding public key to GCP VM metadata..."
+    gcloud compute instances add-metadata "$INSTANCE_NAME" \
+        --metadata-from-file ssh-keys="$KEY_FILE.pub" \
+        --project="$PROJECT_ID" --zone="$ZONE"
+
+    echo "${BOLD}Public key added successfully.${NC}"
+    source prepare_vm.sh
+
+
+    
 else
     echo "You choose 'no'. Skipping VM creation and executing the validations in the current machine."
 fi
+
+
 # Install packages
 exit 1
 echo "${BOLD}Installing required packages... Getting ready...${NC}"
