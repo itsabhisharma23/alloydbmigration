@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG_FILE="../migration.config" 
+CONFIG_FILE="migration.config" 
 
 
 GREEN=$(tput setaf 2)
