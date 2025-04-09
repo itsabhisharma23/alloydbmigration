@@ -61,12 +61,7 @@ echo "Adding postgresql source connection...."
 data-validation connections add --connection-name=$CONN_NAME Postgres --host=$SOURCE_HOST --port=$SOURCE_PORT --user=$SOURCE_USER --password=$DVT_SOURCE_PASSWORD --database=$DB_NAME   
 
 echo "adding postgresql distination connection...."
-data-validation connections add --connection-name=$DEST_CONN_NAME Postgres \
-    --host=$DESTINATION_HOST \
-    --port=$DESTINATION_PORT \
-    --user=$DESTINATION_USER \
-    --password=$DVT_DEST_PASSWORD \
-    --database=$DB_NAME 
+data-validation connections add --connection-name=$DEST_CONN_NAME Postgres --host=$DESTINATION_HOST --port=$DESTINATION_PORT --user=$DESTINATION_USER --password=$DVT_DEST_PASSWORD --database=$DB_NAME 
 
 ########################################################
 #####DVT Validations####################################
@@ -78,6 +73,7 @@ for schema in "${SCHEMAS[@]}"; do
   ############################
 
   # Table Count Validation
+    echo "Tables count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -86,6 +82,7 @@ for schema in "${SCHEMAS[@]}"; do
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
 
   # View Count Validation
+    echo "Views count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -94,6 +91,7 @@ for schema in "${SCHEMAS[@]}"; do
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
 
   # Routines Count Validation
+    echo "Routines count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -102,6 +100,7 @@ for schema in "${SCHEMAS[@]}"; do
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
 
   # Primary Key Count Validation
+    echo "Primary keys count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -110,6 +109,7 @@ for schema in "${SCHEMAS[@]}"; do
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
 
   # Foreign Key Count Validation
+    echo "Foreign keys count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -118,6 +118,7 @@ for schema in "${SCHEMAS[@]}"; do
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
 
   # Constraints Count Validation
+    echo "Constraint count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -126,6 +127,7 @@ for schema in "${SCHEMAS[@]}"; do
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
 
   # Functions Count Validation
+    echo "Functions count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -134,6 +136,7 @@ for schema in "${SCHEMAS[@]}"; do
     -bqrh $PROJECT_ID.$BQ_DVT_DATASET.results
  
   # Sequence Count Validation
+    echo "Sequences count check"
     data-validation validate column \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -151,6 +154,7 @@ for schema in "${SCHEMAS[@]}"; do
     echo "  Validating table schema for: $table"
 
     # Schema Validations
+    echo "Validating table schema for: $table"
     data-validation validate schema \
     -sc $CONN_NAME \
     -tc $DEST_CONN_NAME \
@@ -164,7 +168,7 @@ for schema in "${SCHEMAS[@]}"; do
   done
 
 done
-
+exit 1
 vim -c "wq" "$INPUT_CSV"
 echo "Validating table row count with filters..."
 tail -n +2 "$INPUT_CSV" | while IFS=, read -r schema_name table_name filter_condition; do
