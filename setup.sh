@@ -171,6 +171,7 @@ if [[ "$is_vm_required" == "y" ]]; then
     
 else
     echo "You choose 'no'. Skipping VM creation and executing the validations in the current machine."
+    source "prevalidations.sh"
 fi
 
 
