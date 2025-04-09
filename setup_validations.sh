@@ -121,8 +121,8 @@ if [[ "$is_vm_required" == "y" ]]; then
         read -p "Connect to the VM now? (y/n): " SSH_CONNECT
         if [[ "$SSH_CONNECT" =~ ^[Yy]$ ]]; then
             echo "Copying script files to the '$INSTANCE_NAME' VM..."
-            gcloud compute scp ../migration.config $INSTANCE_NAME:migration.config --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
-            gcloud compute scp ../prevalidations.sh $INSTANCE_NAME:prevalidations.sh --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
+            gcloud compute scp migration.config $INSTANCE_NAME:migration.config --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
+            gcloud compute scp prevalidations.sh $INSTANCE_NAME:prevalidations.sh --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
             #gcloud compute scp $INPUT_CSV $INSTANCE_NAME:$INPUT_CSV --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
             echo "${BOLD}Scripts copied to the VM.${NC}"
             echo "---------------------------------------------------------"
