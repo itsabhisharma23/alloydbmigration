@@ -36,7 +36,7 @@ echo "BigQuery results table created successfully (or already existed) in '$PROJ
 echo "---------------------------------------------------------"
 echo ""
 echo "---------------------------------------------------------"
-echo "${BOLD}Do you want to create a Virtual Machine for Data Validation?${NC}"
+echo "${BOLD}Do you want to create a Virtual Machine for Data Validations?${NC}"
 echo ""
 echo "Note: If you already have a VM with required permissions, you don't need to create one."
 read -p "Enter your choice (y/n): " is_vm_required
