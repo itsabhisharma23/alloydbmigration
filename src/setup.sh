@@ -82,39 +82,61 @@ if [[ "$is_vm_required" == "y" ]]; then
     echo "---------------------------------------------------------"
     echo "${GREEN}VM is ready to perform further actions...${NC}"
     echo ""
-    echo "${BOLD} Do you want the tool to login to VM and run validations?${NC}"
+    echo "${BOLD}Do you want the tool to login to VM and run validations?${NC}"
     echo "Note: This step will register SSH keys to VM."
-    echo ""
-    echo "${YELLOW}${BOLD}Setting up SSH keys.${NC}"
-    # --- Fetch Username from gcloud (without domain) ---
-    # Use gcloud config to get account or default username if none
-    FULL_USERNAME=$(gcloud config get-value account 2> /dev/null || echo "defaultuser")
-    # Strip away the domain part using parameter expansion
-    USERNAME=${FULL_USERNAME%@*}
-    echo "Using username: $USERNAME"
+    read -p "Choose y or n (y/n): " is_SSH_key
+    if [[ "$is_SSH_key" =~ ^[Yy]$ ]]; then
+        echo ""
+        echo "${YELLOW}${BOLD}Setting up SSH keys.${NC}"
+        # --- Fetch Username from gcloud (without domain) ---
+        # Use gcloud config to get account or default username if none
+        FULL_USERNAME=$(gcloud config get-value account 2> /dev/null || echo "defaultuser")
+        # Strip away the domain part using parameter expansion
+        USERNAME=${FULL_USERNAME%@*}
+        echo "Using username: $USERNAME"
 
-    # --- Key Generation ---
-    # You can comment out this section and provide your existing key as well.
+        # --- Key Generation ---
+        # You can comment out this section and provide your existing key as well.
 
-    if [[ -f "$KEY_FILE" && -f "$KEY_FILE.pub" ]]; then
-        read -p "Key files already exist. Overwrite? (y/n): " OVERWRITE
-        if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
-            echo "Keyfile already exists. Using the same."
-        else 
-            # Include username in SSH key comment to avoid warnings
-            ssh-keygen -t rsa -b 4096 -f "$KEY_FILE" -C "$USERNAME"
-            chmod 600 "$KEY_FILE"
+        if [[ -f "$KEY_FILE" && -f "$KEY_FILE.pub" ]]; then
+            read -p "Key files already exist. Overwrite? (y/n): " OVERWRITE
+            if [[ ! "$OVERWRITE" =~ ^[Yy]$ ]]; then
+                echo "Keyfile already exists. Using the same."
+            else 
+                # Include username in SSH key comment to avoid warnings
+                ssh-keygen -t rsa -b 4096 -f "$KEY_FILE" -C "$USERNAME"
+                chmod 600 "$KEY_FILE"
+            fi
         fi
+        # --- Add Key to GCP VM ---
+
+        echo "Adding public key to GCP VM metadata..."
+        gcloud compute instances add-metadata "$INSTANCE_NAME" \
+            --metadata-from-file ssh-keys="$KEY_FILE.pub" \
+            --project="$PROJECT_ID" --zone="$ZONE"
+
+        echo "${BOLD}Public key added successfully.${NC}"
+        echo "---------------------------------------------------------"
+        echo "${GREEN}VM is ready to perform further actions...${NC}"
+        read -p "Connect to the VM now? (y/n): " SSH_CONNECT
+        if [[ "$SSH_CONNECT" =~ ^[Yy]$ ]]; then
+            echo "Copying script files to the '$INSTANCE_NAME' VM..."
+            gcloud compute scp ../migration.config $INSTANCE_NAME:migration.config --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
+            gcloud compute scp prevalidations.sh $INSTANCE_NAME:prepare_vm.sh --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
+            #gcloud compute scp $INPUT_CSV $INSTANCE_NAME:$INPUT_CSV --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
+            echo "${BOLD}Scripts copied to the VM.${NC}"
+            echo "---------------------------------------------------------"
+            # Execute the prevalidations script on the VM
+            echo "${BOLD}Executing pre-validations on the VM '${INSTANCE_NAME}'...${NC}"
+            gcloud compute ssh --project "$PROJECT_ID" --zone "$ZONE" --ssh-key-file "$KEY_FILE" "$USERNAME@$INSTANCE_NAME" --command "bash prevalidations.sh"
+
+        fi
+    else
+        echo ""
+        echo "${BOLD}You chose not to generate SSH keys to connect to VM.${NC}"
+        echo "Note: You can login to the VM manually and run prevalidations command. Please check guide here : https://github.com/itsabhisharma23/alloydbmigration/blob/main/README.md"
     fi
-    # --- Add Key to GCP VM ---
-
-    echo "Adding public key to GCP VM metadata..."
-    gcloud compute instances add-metadata "$INSTANCE_NAME" \
-        --metadata-from-file ssh-keys="$KEY_FILE.pub" \
-        --project="$PROJECT_ID" --zone="$ZONE"
-
-    echo "${BOLD}Public key added successfully.${NC}"
-    source prepare_vm.sh
+    
 
 
     

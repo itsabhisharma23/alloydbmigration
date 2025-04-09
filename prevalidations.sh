@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG_FILE="../migration.config" 
+CONFIG_FILE="migration.config" 
 
 
 GREEN=$(tput setaf 2)
@@ -10,29 +10,9 @@ BOLD=$(tput bold)
 NC=$(tput sgr0)
 
 
-
-# --- Add Key to GCP VM ---
-
-echo "Adding public key to GCP VM metadata..."
-gcloud compute instances add-metadata "$INSTANCE_NAME" \
-    --metadata-from-file ssh-keys="$KEY_FILE.pub" \
-    --project="$PROJECT_ID" --zone="$ZONE"
-
-echo "Public key added successfully."
-
 # --- SSH Connection (Optional) ---
 
-read -p "Connect to the VM now? (y/n): " SSH_CONNECT
-if [[ "$SSH_CONNECT" =~ ^[Yy]$ ]]; then
-    echo "Copying script files to the '$INSTANCE_NAME' VM..."
-    gcloud compute scp ../migration.config $INSTANCE_NAME:migration.config --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
-    gcloud compute scp prepare_vm.sh $INSTANCE_NAME:prepare_vm.sh --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
-    #gcloud compute scp $INPUT_CSV $INSTANCE_NAME:$INPUT_CSV --zone=$ZONE --project=$PROJECT_ID --ssh-key-file="$KEY_FILE"
-    echo "${BOLD}Scripts copied to the VM.${NC}"
-    echo "#############################"
-    echo "launching a VM into SSH mode for manual interaction... Once you see the CMD, run 'bash validations.sh'"
-    gcloud compute ssh --project "$PROJECT_ID" --zone "$ZONE" --ssh-key-file "$KEY_FILE" "$USERNAME@$INSTANCE_NAME" 
-fi
+echo "RUNNING PREVALIDATIONS..."
 exit 1
 
 echo "Downloading CSV file from VM..."
