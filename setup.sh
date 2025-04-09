@@ -170,8 +170,8 @@ if [[ "$is_vm_required" == "y" ]]; then
 
     
 else
-    echo "You choose 'no'. Skipping VM creation and executing the validations in the current machine."
-    source "prevalidations.sh"
+    echo "You choose 'no'. Skipping VM creation."
+    echo "Note: You can login to the VM manually and run prevalidations command. Please check guide here : https://github.com/itsabhisharma23/alloydbmigration/blob/main/README.md"
 fi
 
 
