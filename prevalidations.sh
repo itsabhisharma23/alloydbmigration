@@ -9,6 +9,12 @@ RED=$(tput setaf 1)
 BOLD=$(tput bold)
 NC=$(tput sgr0)
 
+if [[ -f "$CONFIG_FILE" ]]; then
+  echo "\nLoading your configuration from $CONFIG_FILE"
+  source "$CONFIG_FILE"
+else
+  echo "\nWarning: Configuration file '$CONFIG_FILE' not found. "
+fi
 
 # --- SSH Connection (Optional) ---
 
@@ -52,12 +58,7 @@ echo ""
 echo "---------------------------------------------------------"
 echo "${BOLD}Running Validations ... ${NC}"
 echo "Adding postgresql source connection...."
-data-validation connections add --connection-name=$CONN_NAME Postgres \
-    --host=$SOURCE_HOST \
-    --port=$SOURCE_PORT \
-    --user=$SOURCE_USER \
-    --password=$DVT_SOURCE_PASSWORD \
-    --database=$DB_NAME   
+data-validation connections add --connection-name=$CONN_NAME Postgres --host=$SOURCE_HOST --port=$SOURCE_PORT --user=$SOURCE_USER --password=$DVT_SOURCE_PASSWORD --database=$DB_NAME   
 
 echo "adding postgresql distination connection...."
 data-validation connections add --connection-name=$DEST_CONN_NAME Postgres \
